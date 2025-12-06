@@ -88,8 +88,7 @@ class RecipeExtractorCard extends HTMLElement {
           white-space: nowrap;
         }
         .servings-input {
-          width: 120px;
-          flex-shrink: 0;
+          width: 100%;
           padding: 12px;
           font-size: 16px;
           border: 1px solid var(--divider-color);
@@ -97,6 +96,7 @@ class RecipeExtractorCard extends HTMLElement {
           background-color: var(--card-background-color);
           color: var(--primary-text-color);
           box-sizing: border-box;
+          text-align: center;
         }
         .button {
           padding: 12px 16px;
@@ -176,6 +176,9 @@ class RecipeExtractorCard extends HTMLElement {
               placeholder="${placeholder}"
               id="recipeUrl"
             />
+          </div>
+          <div class="controls-group">
+            <button class="button" id="extractButton">Extract</button>
             <input
               type="number"
               class="servings-input"
@@ -184,13 +187,10 @@ class RecipeExtractorCard extends HTMLElement {
               min="1"
               max="100"
             />
-          </div>
-          <div class="controls-group">
             <div class="button-row">
-              <button class="button" id="extractButton">Extract</button>
               <button class="button" id="addToListButton" disabled>Add to List</button>
+              <button class="button accent" id="extractAndAddButton">Extract + Add</button>
             </div>
-            <button class="button accent" id="extractAndAddButton">Extract + Add</button>
           </div>
           <div id="statusMessage" class="status-message hidden"></div>
           <div id="recipeInfo" class="recipe-info hidden">
