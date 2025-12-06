@@ -155,18 +155,35 @@ class RecipeExtractorCard extends HTMLElement {
       this.showStatus('Extracting recipe...', 'info');
 
       try {
-        await this._hass.callService('recipe_extractor', 'extract_to_list', {
+        const response = await this._hass.callService('recipe_extractor', 'extract_to_list', {
           url: url,
           todo_entity: this.config.entity,
+        }, {
+          return_response: true,
         });
 
-        this.showStatus('Recipe extracted successfully!', 'success');
+        console.log('Recipe extraction response:', response);
+
+        // Check if the response contains an error
+        if (response && response.error) {
+          this.showStatus('Error: ' + response.error, 'error');
+          return;
+        }
+
+        // Show success with ingredient count if available
+        const itemsAdded = response?.items_added || 0;
+        if (itemsAdded > 0) {
+          this.showStatus(`Recipe extracted! Added ${itemsAdded} ingredients.`, 'success');
+        } else {
+          this.showStatus('Recipe extracted but no ingredients found.', 'error');
+        }
+        
         input.value = '';
 
-        // Clear success message after 3 seconds
+        // Clear success message after 5 seconds
         setTimeout(() => {
           statusMessage.classList.add('hidden');
-        }, 3000);
+        }, 5000);
       } catch (error) {
         console.error('Error extracting recipe:', error);
         this.showStatus('Failed to extract recipe: ' + error.message, 'error');
