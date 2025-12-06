@@ -1,0 +1,6 @@
+{
+  "name": "Recipe Extractor Card",
+  "content_in_root": true,
+  "filename": "recipe-extractor-card.js",
+  "render_readme": true
+}

@@ -1,0 +1,23 @@
+{
+  "name": "recipe-extractor-card",
+  "version": "1.0.0",
+  "description": "A custom Lovelace card for extracting recipes and adding ingredients to todo lists",
+  "main": "recipe-extractor-card.js",
+  "keywords": [
+    "home-assistant",
+    "lovelace",
+    "custom-card",
+    "recipe",
+    "todo"
+  ],
+  "author": "Tristan Schwoerer",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tristan-schwoerer/recipe-extractor-card.git"
+  },
+  "bugs": {
+    "url": "https://github.com/tristan-schwoerer/recipe-extractor-card/issues"
+  },
+  "homepage": "https://github.com/tristan-schwoerer/recipe-extractor-card#readme"
+}
