@@ -48,7 +48,12 @@ class RecipeExtractorCard extends HTMLElement {
         .main-row {
           display: flex;
           gap: 12px;
-          align-items: center;
+          align-items: flex-start;
+        }
+        .left-inputs {
+          flex: 1;
+          display: flex;
+          gap: 12px;
         }
         .url-input {
           flex: 1;
@@ -66,8 +71,9 @@ class RecipeExtractorCard extends HTMLElement {
         }
         .controls-group {
           display: flex;
+          flex-direction: column;
           gap: 8px;
-          align-items: center;
+          min-width: 160px;
         }
         .button-row {
           display: flex;
@@ -84,16 +90,17 @@ class RecipeExtractorCard extends HTMLElement {
           white-space: nowrap;
         }
         .servings-input {
-          width: 80px;
-          padding: 8px;
-          font-size: 14px;
+          width: 120px;
+          padding: 12px;
+          font-size: 16px;
           border: 1px solid var(--divider-color);
           border-radius: 4px;
           background-color: var(--card-background-color);
           color: var(--primary-text-color);
+          box-sizing: border-box;
         }
         .button {
-          padding: 10px 16px;
+          padding: 12px 16px;
           font-size: 14px;
           font-weight: 500;
           color: var(--text-primary-color, white);
@@ -103,6 +110,7 @@ class RecipeExtractorCard extends HTMLElement {
           cursor: pointer;
           transition: background-color 0.2s;
           white-space: nowrap;
+          width: 100%;
         }
         .button:hover {
           filter: brightness(1.1);
@@ -167,29 +175,26 @@ class RecipeExtractorCard extends HTMLElement {
         <div class="card-header">${title}</div>
         <div class="input-container">
           <div class="main-row">
-            <input
-              type="url"
-              class="url-input"
-              placeholder="${placeholder}"
-              id="recipeUrl"
-            />
+            <div class="left-inputs">
+              <input
+                type="url"
+                class="url-input"
+                placeholder="${placeholder}"
+                id="recipeUrl"
+              />
+              <input
+                type="number"
+                class="servings-input"
+                id="targetServings"
+                placeholder="Portions"
+                min="1"
+                max="100"
+              />
+            </div>
             <div class="controls-group">
-              <div class="button-row">
-                <button class="button" id="extractButton">Extract</button>
-                <button class="button" id="addToListButton" disabled>Add to List</button>
-                <button class="button accent" id="extractAndAddButton">Extract + Add</button>
-              </div>
-              <div class="servings-row">
-                <span class="servings-label">Portions:</span>
-                <input
-                  type="number"
-                  class="servings-input"
-                  id="targetServings"
-                  placeholder="Auto"
-                  min="1"
-                  max="100"
-                />
-              </div>
+              <button class="button" id="extractButton">Extract</button>
+              <button class="button" id="addToListButton" disabled>Add to List</button>
+              <button class="button accent" id="extractAndAddButton">Extract + Add</button>
             </div>
           </div>
           <div id="statusMessage" class="status-message hidden"></div>
