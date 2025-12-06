@@ -2,6 +2,7 @@ class RecipeExtractorCard extends HTMLElement {
   constructor() {
     super();
     this.attachShadow({ mode: 'open' });
+    this.extractedRecipe = null;
   }
 
   setConfig(config) {
@@ -101,6 +102,56 @@ class RecipeExtractorCard extends HTMLElement {
         .hidden {
           display: none;
         }
+        .servings-container {
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+          margin-top: 12px;
+          padding: 12px;
+          background-color: var(--secondary-background-color);
+          border-radius: 4px;
+        }
+        .servings-info {
+          font-size: 14px;
+          color: var(--primary-text-color);
+        }
+        .servings-input-group {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+        .servings-input-group label {
+          font-size: 14px;
+          color: var(--primary-text-color);
+        }
+        .servings-input {
+          width: 80px;
+          padding: 8px;
+          font-size: 14px;
+          border: 1px solid var(--divider-color);
+          border-radius: 4px;
+          background-color: var(--card-background-color);
+          color: var(--primary-text-color);
+        }
+        .add-to-list-button {
+          padding: 10px 20px;
+          font-size: 14px;
+          font-weight: 500;
+          color: var(--text-primary-color, white);
+          background-color: var(--primary-color);
+          border: none;
+          border-radius: 4px;
+          cursor: pointer;
+          transition: background-color 0.2s;
+        }
+        .add-to-list-button:hover {
+          background-color: var(--primary-color);
+          filter: brightness(1.1);
+        }
+        .add-to-list-button:disabled {
+          opacity: 0.5;
+          cursor: not-allowed;
+        }
       </style>
       <ha-card>
         <div class="card-header">${title}</div>
@@ -112,9 +163,28 @@ class RecipeExtractorCard extends HTMLElement {
             id="recipeUrl"
           />
           <button class="extract-button" id="extractButton">
-            ${buttonText}
+            Extract Recipe
           </button>
           <div id="statusMessage" class="status-message hidden"></div>
+          <div id="servingsContainer" class="servings-container hidden">
+            <div class="servings-info">
+              <strong id="recipeTitle"></strong>
+            </div>
+            <div class="servings-info" id="originalServings"></div>
+            <div class="servings-input-group">
+              <label for="targetServings">Adjust servings:</label>
+              <input
+                type="number"
+                class="servings-input"
+                id="targetServings"
+                min="1"
+                max="100"
+              />
+            </div>
+            <button class="add-to-list-button" id="addToListButton">
+              ${buttonText}
+            </button>
+          </div>
         </div>
       </ha-card>
     `;
@@ -124,18 +194,21 @@ class RecipeExtractorCard extends HTMLElement {
   }
 
   setupListeners() {
-    const button = this.shadowRoot.getElementById('extractButton');
+    const extractButton = this.shadowRoot.getElementById('extractButton');
+    const addToListButton = this.shadowRoot.getElementById('addToListButton');
     const input = this.shadowRoot.getElementById('recipeUrl');
     const statusMessage = this.shadowRoot.getElementById('statusMessage');
+    const servingsContainer = this.shadowRoot.getElementById('servingsContainer');
 
     // Handle Enter key in input
     input.addEventListener('keypress', (e) => {
       if (e.key === 'Enter') {
-        button.click();
+        extractButton.click();
       }
     });
 
-    button.addEventListener('click', async () => {
+    // Step 1: Extract recipe (without adding to list)
+    extractButton.addEventListener('click', async () => {
       const url = input.value.trim();
 
       if (!url) {
@@ -151,18 +224,19 @@ class RecipeExtractorCard extends HTMLElement {
         return;
       }
 
-      button.disabled = true;
+      extractButton.disabled = true;
+      servingsContainer.classList.add('hidden');
       this.showStatus('Extracting recipe...', 'info');
 
       try {
+        // Call the extract service (not extract_to_list)
         const response = await this._hass.callWS({
           type: 'call_service',
           domain: 'recipe_extractor',
-          service: 'extract_to_list',
+          service: 'extract',
           target: {},
           service_data: {
             url: url,
-            todo_entity: this.config.entity,
           },
           return_response: true,
         });
@@ -179,27 +253,121 @@ class RecipeExtractorCard extends HTMLElement {
           return;
         }
 
-        // Show success with ingredient count if available
-        const itemsAdded = data?.items_added || 0;
-        if (itemsAdded > 0) {
-          this.showStatus(`Recipe extracted! Added ${itemsAdded} ingredients.`, 'success');
-        } else {
-          this.showStatus('Recipe extracted but no ingredients found.', 'error');
-        }
-        
-        input.value = '';
+        // Store extracted recipe
+        this.extractedRecipe = data;
+        this.currentUrl = url;
 
-        // Clear success message after 5 seconds
+        // Show servings adjustment UI
+        this.showServingsAdjustment(data);
+        this.showStatus('Recipe extracted! Adjust servings if needed.', 'success');
+
+        // Clear success message after 3 seconds
         setTimeout(() => {
           statusMessage.classList.add('hidden');
-        }, 5000);
+        }, 3000);
       } catch (error) {
         console.error('Error extracting recipe:', error);
         this.showStatus('Failed to extract recipe: ' + error.message, 'error');
       } finally {
-        button.disabled = false;
+        extractButton.disabled = false;
       }
     });
+
+    // Step 2: Add to list with adjusted servings
+    addToListButton.addEventListener('click', async () => {
+      if (!this.extractedRecipe || !this.currentUrl) {
+        this.showStatus('No recipe extracted', 'error');
+        return;
+      }
+
+      const targetServingsInput = this.shadowRoot.getElementById('targetServings');
+      const targetServings = parseInt(targetServingsInput.value);
+
+      if (targetServings && targetServings <= 0) {
+        this.showStatus('Servings must be a positive number', 'error');
+        return;
+      }
+
+      addToListButton.disabled = true;
+      this.showStatus('Adding ingredients to list...', 'info');
+
+      try {
+        const serviceData = {
+          url: this.currentUrl,
+          todo_entity: this.config.entity,
+        };
+
+        // Only add target_servings if it's different from original
+        if (targetServings && targetServings !== this.extractedRecipe.servings) {
+          serviceData.target_servings = targetServings;
+        }
+
+        const response = await this._hass.callWS({
+          type: 'call_service',
+          domain: 'recipe_extractor',
+          service: 'extract_to_list',
+          target: {},
+          service_data: serviceData,
+          return_response: true,
+        });
+
+        const data = response?.response || response;
+
+        if (data && data.error) {
+          this.showStatus('Error: ' + data.error, 'error');
+          return;
+        }
+
+        const itemsAdded = data?.items_added || 0;
+        if (itemsAdded > 0) {
+          this.showStatus(`Added ${itemsAdded} ingredients to list!`, 'success');
+        } else {
+          this.showStatus('No ingredients to add.', 'error');
+        }
+
+        // Clear form
+        input.value = '';
+        servingsContainer.classList.add('hidden');
+        this.extractedRecipe = null;
+        this.currentUrl = null;
+
+        // Clear message after 5 seconds
+        setTimeout(() => {
+          statusMessage.classList.add('hidden');
+        }, 5000);
+      } catch (error) {
+        console.error('Error adding to list:', error);
+        this.showStatus('Failed to add to list: ' + error.message, 'error');
+      } finally {
+        addToListButton.disabled = false;
+      }
+    });
+  }
+
+  showServingsAdjustment(recipeData) {
+    const servingsContainer = this.shadowRoot.getElementById('servingsContainer');
+    const recipeTitle = this.shadowRoot.getElementById('recipeTitle');
+    const originalServings = this.shadowRoot.getElementById('originalServings');
+    const targetServingsInput = this.shadowRoot.getElementById('targetServings');
+
+    // Set recipe title
+    recipeTitle.textContent = recipeData.title || 'Recipe';
+
+    // Set servings information
+    if (recipeData.servings) {
+      originalServings.textContent = `Original recipe: ${recipeData.servings} servings`;
+      targetServingsInput.value = recipeData.servings;
+    } else {
+      originalServings.textContent = 'Original servings not specified';
+      targetServingsInput.value = '';
+      targetServingsInput.placeholder = 'N/A';
+    }
+
+    // Show ingredient count
+    const ingredientCount = recipeData.ingredients?.length || 0;
+    originalServings.textContent += ` • ${ingredientCount} ingredients`;
+
+    servingsContainer.classList.remove('hidden');
   }
 
   showStatus(message, type) {
