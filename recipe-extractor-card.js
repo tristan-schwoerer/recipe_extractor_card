@@ -318,6 +318,7 @@ class RecipeExtractorCard extends HTMLElement {
         const serviceData = {
           url: this.currentUrl,
           todo_entity: this.config.entity,
+          recipe: this.extractedRecipe,  // Pass the already-extracted recipe data
         };
 
         // Only add target_servings if it's different from original
