@@ -45,16 +45,10 @@ class RecipeExtractorCard extends HTMLElement {
           flex-direction: column;
           gap: 12px;
         }
-        .main-row {
+        .input-row {
           display: flex;
-          gap: 8px;
-          align-items: flex-start;
-        }
-        .left-inputs {
-          flex: 1;
-          min-width: 0;
-          display: flex;
-          gap: 8px;
+          gap: 12px;
+          margin-bottom: 12px;
         }
         .url-input {
           flex: 1;
@@ -75,12 +69,13 @@ class RecipeExtractorCard extends HTMLElement {
           display: flex;
           flex-direction: column;
           gap: 8px;
-          width: 120px;
-          flex-shrink: 0;
         }
         .button-row {
           display: flex;
           gap: 8px;
+        }
+        .button-row .button {
+          flex: 1;
         }
         .servings-row {
           display: flex;
@@ -93,9 +88,9 @@ class RecipeExtractorCard extends HTMLElement {
           white-space: nowrap;
         }
         .servings-input {
-          width: 90px;
+          width: 120px;
           flex-shrink: 0;
-          padding: 12px 8px;
+          padding: 12px;
           font-size: 16px;
           border: 1px solid var(--divider-color);
           border-radius: 4px;
@@ -104,8 +99,8 @@ class RecipeExtractorCard extends HTMLElement {
           box-sizing: border-box;
         }
         .button {
-          padding: 10px 6px;
-          font-size: 12px;
+          padding: 12px 16px;
+          font-size: 14px;
           font-weight: 500;
           color: var(--text-primary-color, white);
           background-color: var(--primary-color);
@@ -113,11 +108,8 @@ class RecipeExtractorCard extends HTMLElement {
           border-radius: 4px;
           cursor: pointer;
           transition: background-color 0.2s;
-          white-space: normal;
-          word-wrap: break-word;
-          line-height: 1.2;
+          white-space: nowrap;
           width: 100%;
-          min-height: 36px;
         }
         .button:hover {
           filter: brightness(1.1);
@@ -166,55 +158,39 @@ class RecipeExtractorCard extends HTMLElement {
           display: block;
           margin-bottom: 4px;
         }
-        @media (max-width: 800px) {
-          .main-row {
-            flex-direction: column;
-          }
-          .left-inputs {
-            width: 100%;
-          }
-          .controls-group {
-            width: 100%;
-            flex-direction: row;
-          }
-          .button {
-            flex: 1;
-          }
-        }
         @media (max-width: 500px) {
-          .controls-group {
+          .input-row {
             flex-direction: column;
           }
-          .button {
+          .servings-input {
             width: 100%;
           }
         }
       </style>
       <ha-card>
-        <div class="card-header">${title}</div>
         <div class="input-container">
-          <div class="main-row">
-            <div class="left-inputs">
-              <input
-                type="url"
-                class="url-input"
-                placeholder="${placeholder}"
-                id="recipeUrl"
-              />
-              <input
-                type="number"
-                class="servings-input"
-                id="targetServings"
-                placeholder="Portions"
-                min="1"
-                max="100"
-              />
-            </div>
-            <div class="controls-group">
+          <div class="input-row">
+            <input
+              type="url"
+              class="url-input"
+              placeholder="${placeholder}"
+              id="recipeUrl"
+            />
+            <input
+              type="number"
+              class="servings-input"
+              id="targetServings"
+              placeholder="Portions"
+              min="1"
+              max="100"
+            />
+          </div>
+          <div class="controls-group">
+            <div class="button-row">
               <button class="button" id="extractButton">Extract</button>
               <button class="button" id="addToListButton" disabled>Add to List</button>
-              <button class="button accent" id="extractAndAddButton">Extract + Add</button>
             </div>
+            <button class="button accent" id="extractAndAddButton">Extract + Add</button>
           </div>
           <div id="statusMessage" class="status-message hidden"></div>
           <div id="recipeInfo" class="recipe-info hidden">
