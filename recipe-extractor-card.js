@@ -178,19 +178,19 @@ class RecipeExtractorCard extends HTMLElement {
             />
           </div>
           <div class="controls-group">
-            <button class="button" id="extractButton">Extract</button>
-            <input
-              type="number"
-              class="servings-input"
-              id="targetServings"
-              placeholder="Portions"
-              min="1"
-              max="100"
-            />
             <div class="button-row">
+              <button class="button" id="extractButton">Extract</button>
+              <input
+                type="number"
+                class="servings-input"
+                id="targetServings"
+                placeholder="Portions"
+                min="1"
+                max="100"
+              />
               <button class="button" id="addToListButton" disabled>Add to List</button>
-              <button class="button accent" id="extractAndAddButton">Extract + Add</button>
             </div>
+            <button class="button accent" id="extractAndAddButton">Extract + Add</button>
           </div>
           <div id="statusMessage" class="status-message hidden"></div>
           <div id="recipeInfo" class="recipe-info hidden">
