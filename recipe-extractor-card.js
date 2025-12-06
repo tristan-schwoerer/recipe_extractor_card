@@ -73,7 +73,8 @@ class RecipeExtractorCard extends HTMLElement {
           display: flex;
           flex-direction: column;
           gap: 8px;
-          min-width: 160px;
+          min-width: 140px;
+          flex-shrink: 0;
         }
         .button-row {
           display: flex;
@@ -90,7 +91,8 @@ class RecipeExtractorCard extends HTMLElement {
           white-space: nowrap;
         }
         .servings-input {
-          width: 120px;
+          width: 110px;
+          min-width: 80px;
           padding: 12px;
           font-size: 16px;
           border: 1px solid var(--divider-color);
@@ -98,10 +100,11 @@ class RecipeExtractorCard extends HTMLElement {
           background-color: var(--card-background-color);
           color: var(--primary-text-color);
           box-sizing: border-box;
+          flex-shrink: 1;
         }
         .button {
-          padding: 12px 16px;
-          font-size: 14px;
+          padding: 12px 8px;
+          font-size: 13px;
           font-weight: 500;
           color: var(--text-primary-color, white);
           background-color: var(--primary-color);
@@ -111,6 +114,8 @@ class RecipeExtractorCard extends HTMLElement {
           transition: background-color 0.2s;
           white-space: nowrap;
           width: 100%;
+          overflow: hidden;
+          text-overflow: ellipsis;
         }
         .button:hover {
           filter: brightness(1.1);
