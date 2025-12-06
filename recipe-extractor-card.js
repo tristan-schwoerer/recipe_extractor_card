@@ -155,15 +155,16 @@ class RecipeExtractorCard extends HTMLElement {
       this.showStatus('Extracting recipe...', 'info');
 
       try {
-        const response = await this._hass.callService(
-          'recipe_extractor', 
-          'extract_to_list', 
-          {
+        const response = await this._hass.callWS({
+          type: 'call_service',
+          domain: 'recipe_extractor',
+          service: 'extract_to_list',
+          service_data: {
             url: url,
             todo_entity: this.config.entity,
           },
-          true  // return_response
-        );
+          return_response: true,
+        });
 
         console.log('Recipe extraction response:', response);
 
