@@ -73,9 +73,14 @@ class RecipeExtractorCard extends HTMLElement {
         .button-row {
           display: flex;
           gap: 8px;
+          align-items: center;
         }
         .button-row .button {
           flex: 1;
+        }
+        .button-row .servings-input {
+          flex: 1;
+          min-width: 0;
         }
         .servings-row {
           display: flex;
@@ -88,7 +93,6 @@ class RecipeExtractorCard extends HTMLElement {
           white-space: nowrap;
         }
         .servings-input {
-          width: 100%;
           padding: 12px;
           font-size: 16px;
           border: 1px solid var(--divider-color);
