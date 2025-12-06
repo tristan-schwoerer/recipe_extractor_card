@@ -45,8 +45,13 @@ class RecipeExtractorCard extends HTMLElement {
           flex-direction: column;
           gap: 12px;
         }
+        .main-row {
+          display: flex;
+          gap: 12px;
+          align-items: stretch;
+        }
         .url-input {
-          width: 100%;
+          flex: 1;
           padding: 12px;
           font-size: 16px;
           border: 1px solid var(--divider-color);
@@ -59,9 +64,37 @@ class RecipeExtractorCard extends HTMLElement {
           outline: none;
           border-color: var(--primary-color);
         }
-        .extract-button {
-          padding: 12px 24px;
-          font-size: 16px;
+        .controls-group {
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+        }
+        .button-row {
+          display: flex;
+          gap: 8px;
+        }
+        .servings-row {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+        .servings-label {
+          font-size: 14px;
+          color: var(--primary-text-color);
+          white-space: nowrap;
+        }
+        .servings-input {
+          width: 80px;
+          padding: 8px;
+          font-size: 14px;
+          border: 1px solid var(--divider-color);
+          border-radius: 4px;
+          background-color: var(--card-background-color);
+          color: var(--primary-text-color);
+        }
+        .button {
+          padding: 10px 16px;
+          font-size: 14px;
           font-weight: 500;
           color: var(--text-primary-color, white);
           background-color: var(--primary-color);
@@ -69,20 +102,25 @@ class RecipeExtractorCard extends HTMLElement {
           border-radius: 4px;
           cursor: pointer;
           transition: background-color 0.2s;
+          white-space: nowrap;
         }
-        .extract-button:hover {
-          background-color: var(--primary-color);
+        .button:hover {
           filter: brightness(1.1);
         }
-        .extract-button:active {
+        .button:active {
           filter: brightness(0.9);
         }
-        .extract-button:disabled {
+        .button:disabled {
           opacity: 0.5;
           cursor: not-allowed;
         }
+        .button.secondary {
+          background-color: var(--secondary-text-color);
+        }
+        .button.accent {
+          background-color: var(--accent-color, var(--primary-color));
+        }
         .status-message {
-          margin-top: 12px;
           padding: 8px;
           border-radius: 4px;
           font-size: 14px;
@@ -102,88 +140,62 @@ class RecipeExtractorCard extends HTMLElement {
         .hidden {
           display: none;
         }
-        .servings-container {
-          display: flex;
-          flex-direction: column;
-          gap: 12px;
-          margin-top: 12px;
+        .recipe-info {
           padding: 12px;
           background-color: var(--secondary-background-color);
           border-radius: 4px;
-        }
-        .servings-info {
           font-size: 14px;
           color: var(--primary-text-color);
         }
-        .servings-input-group {
-          display: flex;
-          align-items: center;
-          gap: 8px;
+        .recipe-info strong {
+          display: block;
+          margin-bottom: 4px;
         }
-        .servings-input-group label {
-          font-size: 14px;
-          color: var(--primary-text-color);
-        }
-        .servings-input {
-          width: 80px;
-          padding: 8px;
-          font-size: 14px;
-          border: 1px solid var(--divider-color);
-          border-radius: 4px;
-          background-color: var(--card-background-color);
-          color: var(--primary-text-color);
-        }
-        .add-to-list-button {
-          padding: 10px 20px;
-          font-size: 14px;
-          font-weight: 500;
-          color: var(--text-primary-color, white);
-          background-color: var(--primary-color);
-          border: none;
-          border-radius: 4px;
-          cursor: pointer;
-          transition: background-color 0.2s;
-        }
-        .add-to-list-button:hover {
-          background-color: var(--primary-color);
-          filter: brightness(1.1);
-        }
-        .add-to-list-button:disabled {
-          opacity: 0.5;
-          cursor: not-allowed;
+        @media (max-width: 600px) {
+          .main-row {
+            flex-direction: column;
+          }
+          .controls-group {
+            width: 100%;
+          }
+          .button-row {
+            flex-wrap: wrap;
+          }
         }
       </style>
       <ha-card>
         <div class="card-header">${title}</div>
         <div class="input-container">
-          <input
-            type="url"
-            class="url-input"
-            placeholder="${placeholder}"
-            id="recipeUrl"
-          />
-          <button class="extract-button" id="extractButton">
-            Extract Recipe
-          </button>
+          <div class="main-row">
+            <input
+              type="url"
+              class="url-input"
+              placeholder="${placeholder}"
+              id="recipeUrl"
+            />
+            <div class="controls-group">
+              <div class="button-row">
+                <button class="button" id="extractButton">Extract</button>
+                <button class="button" id="addToListButton" disabled>Add to List</button>
+                <button class="button accent" id="extractAndAddButton">Extract + Add</button>
+              </div>
+              <div class="servings-row">
+                <span class="servings-label">Portions:</span>
+                <input
+                  type="number"
+                  class="servings-input"
+                  id="targetServings"
+                  placeholder="Auto"
+                  min="1"
+                  max="100"
+                />
+              </div>
+            </div>
+          </div>
           <div id="statusMessage" class="status-message hidden"></div>
-          <div id="servingsContainer" class="servings-container hidden">
-            <div class="servings-info">
-              <strong id="recipeTitle"></strong>
-            </div>
-            <div class="servings-info" id="originalServings"></div>
-            <div class="servings-input-group">
-              <label for="targetServings">Adjust servings:</label>
-              <input
-                type="number"
-                class="servings-input"
-                id="targetServings"
-                min="1"
-                max="100"
-              />
-            </div>
-            <button class="add-to-list-button" id="addToListButton">
-              ${buttonText}
-            </button>
+          <div id="recipeInfo" class="recipe-info hidden">
+            <strong id="recipeTitle"></strong>
+            <span id="recipeDetails"></span>
           </div>
         </div>
       </ha-card>
@@ -196,9 +208,10 @@ class RecipeExtractorCard extends HTMLElement {
   setupListeners() {
     const extractButton = this.shadowRoot.getElementById('extractButton');
     const addToListButton = this.shadowRoot.getElementById('addToListButton');
+    const extractAndAddButton = this.shadowRoot.getElementById('extractAndAddButton');
     const input = this.shadowRoot.getElementById('recipeUrl');
     const statusMessage = this.shadowRoot.getElementById('statusMessage');
-    const servingsContainer = this.shadowRoot.getElementById('servingsContainer');
+    const recipeInfo = this.shadowRoot.getElementById('recipeInfo');
 
     // Handle Enter key in input
     input.addEventListener('keypress', (e) => {
@@ -225,7 +238,8 @@ class RecipeExtractorCard extends HTMLElement {
       }
 
       extractButton.disabled = true;
-      servingsContainer.classList.add('hidden');
+      extractAndAddButton.disabled = true;
+      recipeInfo.classList.add('hidden');
       this.showStatus('Extracting recipe...', 'info');
 
       try {
@@ -257,9 +271,13 @@ class RecipeExtractorCard extends HTMLElement {
         this.extractedRecipe = data;
         this.currentUrl = url;
 
-        // Show servings adjustment UI
-        this.showServingsAdjustment(data);
-        this.showStatus('Recipe extracted! Adjust servings if needed.', 'success');
+        // Show recipe info
+        this.showRecipeInfo(data);
+        
+        // Enable "Add to List" button
+        addToListButton.disabled = false;
+        
+        this.showStatus('Recipe extracted! Adjust portions if needed.', 'success');
 
         // Clear success message after 3 seconds
         setTimeout(() => {
@@ -270,6 +288,7 @@ class RecipeExtractorCard extends HTMLElement {
         this.showStatus('Failed to extract recipe: ' + error.message, 'error');
       } finally {
         extractButton.disabled = false;
+        extractAndAddButton.disabled = false;
       }
     });
 
@@ -327,9 +346,10 @@ class RecipeExtractorCard extends HTMLElement {
 
         // Clear form
         input.value = '';
-        servingsContainer.classList.add('hidden');
+        recipeInfo.classList.add('hidden');
         this.extractedRecipe = null;
         this.currentUrl = null;
+        addToListButton.disabled = true;
 
         // Clear message after 5 seconds
         setTimeout(() => {
@@ -342,32 +362,117 @@ class RecipeExtractorCard extends HTMLElement {
         addToListButton.disabled = false;
       }
     });
+
+    // Step 3: Extract and Add in one click
+    extractAndAddButton.addEventListener('click', async () => {
+      const url = input.value.trim();
+
+      if (!url) {
+        this.showStatus('Please enter a recipe URL', 'error');
+        return;
+      }
+
+      // Basic URL validation
+      try {
+        new URL(url);
+      } catch (e) {
+        this.showStatus('Please enter a valid URL', 'error');
+        return;
+      }
+
+      const targetServingsInput = this.shadowRoot.getElementById('targetServings');
+      const targetServings = parseInt(targetServingsInput.value);
+
+      if (targetServings && targetServings <= 0) {
+        this.showStatus('Servings must be a positive number', 'error');
+        return;
+      }
+
+      extractButton.disabled = true;
+      addToListButton.disabled = true;
+      extractAndAddButton.disabled = true;
+      recipeInfo.classList.add('hidden');
+      this.showStatus('Extracting and adding to list...', 'info');
+
+      try {
+        const serviceData = {
+          url: url,
+          todo_entity: this.config.entity,
+        };
+
+        // Add target_servings if specified
+        if (targetServings && targetServings > 0) {
+          serviceData.target_servings = targetServings;
+        }
+
+        const response = await this._hass.callWS({
+          type: 'call_service',
+          domain: 'recipe_extractor',
+          service: 'extract_to_list',
+          target: {},
+          service_data: serviceData,
+          return_response: true,
+        });
+
+        const data = response?.response || response;
+
+        if (data && data.error) {
+          this.showStatus('Error: ' + data.error, 'error');
+          return;
+        }
+
+        const itemsAdded = data?.items_added || 0;
+        if (itemsAdded > 0) {
+          this.showStatus(`Added ${itemsAdded} ingredients to list!`, 'success');
+        } else {
+          this.showStatus('No ingredients to add.', 'error');
+        }
+
+        // Clear form
+        input.value = '';
+        targetServingsInput.value = '';
+        recipeInfo.classList.add('hidden');
+        this.extractedRecipe = null;
+        this.currentUrl = null;
+
+        // Clear message after 5 seconds
+        setTimeout(() => {
+          statusMessage.classList.add('hidden');
+        }, 5000);
+      } catch (error) {
+        console.error('Error in extract and add:', error);
+        this.showStatus('Failed to extract and add: ' + error.message, 'error');
+      } finally {
+        extractButton.disabled = false;
+        addToListButton.disabled = true;
+        extractAndAddButton.disabled = false;
+      }
+    });
   }
 
-  showServingsAdjustment(recipeData) {
-    const servingsContainer = this.shadowRoot.getElementById('servingsContainer');
+  showRecipeInfo(recipeData) {
+    const recipeInfo = this.shadowRoot.getElementById('recipeInfo');
     const recipeTitle = this.shadowRoot.getElementById('recipeTitle');
-    const originalServings = this.shadowRoot.getElementById('originalServings');
+    const recipeDetails = this.shadowRoot.getElementById('recipeDetails');
     const targetServingsInput = this.shadowRoot.getElementById('targetServings');
 
     // Set recipe title
     recipeTitle.textContent = recipeData.title || 'Recipe';
 
-    // Set servings information
+    // Build details string
+    const ingredientCount = recipeData.ingredients?.length || 0;
+    let detailsText = `${ingredientCount} ingredient${ingredientCount !== 1 ? 's' : ''}`;
+    
     if (recipeData.servings) {
-      originalServings.textContent = `Original recipe: ${recipeData.servings} servings`;
-      targetServingsInput.value = recipeData.servings;
-    } else {
-      originalServings.textContent = 'Original servings not specified';
-      targetServingsInput.value = '';
-      targetServingsInput.placeholder = 'N/A';
+      detailsText += ` • ${recipeData.servings} serving${recipeData.servings !== 1 ? 's' : ''} (original)`;
+      // Pre-fill the servings input with the original value
+      if (!targetServingsInput.value) {
+        targetServingsInput.value = recipeData.servings;
+      }
     }
 
-    // Show ingredient count
-    const ingredientCount = recipeData.ingredients?.length || 0;
-    originalServings.textContent += ` • ${ingredientCount} ingredients`;
-
-    servingsContainer.classList.remove('hidden');
+    recipeDetails.textContent = detailsText;
+    recipeInfo.classList.remove('hidden');
   }
 
   showStatus(message, type) {
