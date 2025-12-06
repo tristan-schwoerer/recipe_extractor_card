@@ -159,15 +159,27 @@ class RecipeExtractorCard extends HTMLElement {
           display: block;
           margin-bottom: 4px;
         }
-        @media (max-width: 600px) {
+        @media (max-width: 800px) {
           .main-row {
             flex-direction: column;
           }
-          .controls-group {
+          .left-inputs {
             width: 100%;
           }
-          .button-row {
-            flex-wrap: wrap;
+          .controls-group {
+            width: 100%;
+            flex-direction: row;
+          }
+          .button {
+            flex: 1;
+          }
+        }
+        @media (max-width: 500px) {
+          .controls-group {
+            flex-direction: column;
+          }
+          .button {
+            width: 100%;
           }
         }
       </style>
