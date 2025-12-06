@@ -47,16 +47,18 @@ class RecipeExtractorCard extends HTMLElement {
         }
         .main-row {
           display: flex;
-          gap: 12px;
+          gap: 8px;
           align-items: flex-start;
         }
         .left-inputs {
           flex: 1;
+          min-width: 0;
           display: flex;
-          gap: 12px;
+          gap: 8px;
         }
         .url-input {
           flex: 1;
+          min-width: 0;
           padding: 12px;
           font-size: 16px;
           border: 1px solid var(--divider-color);
@@ -73,7 +75,7 @@ class RecipeExtractorCard extends HTMLElement {
           display: flex;
           flex-direction: column;
           gap: 8px;
-          min-width: 140px;
+          width: 120px;
           flex-shrink: 0;
         }
         .button-row {
@@ -91,20 +93,19 @@ class RecipeExtractorCard extends HTMLElement {
           white-space: nowrap;
         }
         .servings-input {
-          width: 110px;
-          min-width: 80px;
-          padding: 12px;
+          width: 90px;
+          flex-shrink: 0;
+          padding: 12px 8px;
           font-size: 16px;
           border: 1px solid var(--divider-color);
           border-radius: 4px;
           background-color: var(--card-background-color);
           color: var(--primary-text-color);
           box-sizing: border-box;
-          flex-shrink: 1;
         }
         .button {
-          padding: 12px 8px;
-          font-size: 13px;
+          padding: 10px 6px;
+          font-size: 12px;
           font-weight: 500;
           color: var(--text-primary-color, white);
           background-color: var(--primary-color);
@@ -112,10 +113,11 @@ class RecipeExtractorCard extends HTMLElement {
           border-radius: 4px;
           cursor: pointer;
           transition: background-color 0.2s;
-          white-space: nowrap;
+          white-space: normal;
+          word-wrap: break-word;
+          line-height: 1.2;
           width: 100%;
-          overflow: hidden;
-          text-overflow: ellipsis;
+          min-height: 36px;
         }
         .button:hover {
           filter: brightness(1.1);
