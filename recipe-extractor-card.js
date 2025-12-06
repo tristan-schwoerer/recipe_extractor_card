@@ -159,6 +159,7 @@ class RecipeExtractorCard extends HTMLElement {
           type: 'call_service',
           domain: 'recipe_extractor',
           service: 'extract_to_list',
+          target: {},
           service_data: {
             url: url,
             todo_entity: this.config.entity,
@@ -166,16 +167,20 @@ class RecipeExtractorCard extends HTMLElement {
           return_response: true,
         });
 
-        console.log('Recipe extraction response:', response);
+        console.log('Full recipe extraction response:', response);
+
+        // The response data is nested under 'response'
+        const data = response?.response || response;
+        console.log('Extracted data:', data);
 
         // Check if the response contains an error
-        if (response && response.error) {
-          this.showStatus('Error: ' + response.error, 'error');
+        if (data && data.error) {
+          this.showStatus('Error: ' + data.error, 'error');
           return;
         }
 
         // Show success with ingredient count if available
-        const itemsAdded = response?.items_added || 0;
+        const itemsAdded = data?.items_added || 0;
         if (itemsAdded > 0) {
           this.showStatus(`Recipe extracted! Added ${itemsAdded} ingredients.`, 'success');
         } else {
