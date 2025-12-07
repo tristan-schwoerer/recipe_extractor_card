@@ -298,7 +298,7 @@ class RecipeExtractorCard extends HTMLElement {
 
     // Step 2: Add to list with adjusted servings
     addToListButton.addEventListener('click', async () => {
-      if (!this.extractedRecipe || !this.currentUrl) {
+      if (!this.extractedRecipe) {
         this.showStatus('No recipe extracted', 'error');
         return;
       }
@@ -316,9 +316,8 @@ class RecipeExtractorCard extends HTMLElement {
 
       try {
         const serviceData = {
-          url: this.currentUrl,
-          todo_entity: this.config.entity,
           recipe: this.extractedRecipe,  // Pass the already-extracted recipe data
+          todo_entity: this.config.entity,
         };
 
         // Only add target_servings if it's different from original
@@ -329,7 +328,7 @@ class RecipeExtractorCard extends HTMLElement {
         const response = await this._hass.callWS({
           type: 'call_service',
           domain: 'recipe_extractor',
-          service: 'extract_to_list',
+          service: 'add_to_list',
           target: {},
           service_data: serviceData,
           return_response: true,
