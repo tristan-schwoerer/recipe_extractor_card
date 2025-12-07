@@ -244,7 +244,7 @@ class RecipeExtractorCard extends HTMLElement {
       extractButton.disabled = true;
       extractAndAddButton.disabled = true;
       recipeInfo.classList.add('hidden');
-      this.showStatus('Extracting recipe...', 'info');
+      this.showStatus('Checking recipe format...', 'info');
 
       try {
         // Call the extract service (not extract_to_list)
@@ -281,7 +281,11 @@ class RecipeExtractorCard extends HTMLElement {
         // Enable "Add to List" button
         addToListButton.disabled = false;
         
-        this.showStatus('Recipe extracted! Adjust portions if needed.', 'success');
+        // Show extraction method in status
+        const extractionMethod = data.extraction_method === 'json-ld' 
+          ? 'Parsing from JSON-LD' 
+          : 'Converting using AI';
+        this.showStatus(`${extractionMethod} • Recipe extracted! Adjust portions if needed.`, 'success');
 
         // Clear success message after 3 seconds
         setTimeout(() => {
@@ -343,12 +347,16 @@ class RecipeExtractorCard extends HTMLElement {
 
         const itemsAdded = data?.items_added || 0;
         if (itemsAdded > 0) {
-          this.showStatus(`Added ${itemsAdded} ingredients to list!`, 'success');
+          // Show extraction method in success message
+          const extractionMethod = data.extraction_method === 'json-ld' 
+            ? 'Parsing from JSON-LD' 
+            : 'Converting using AI';
+          this.showStatus(`${extractionMethod} • Added ${itemsAdded} ingredients to list!`, 'success');
         } else {
           this.showStatus('No ingredients to add.', 'error');
         }
 
-        // Clear form
+        // Clear input and success message after 5 seconds
         input.value = '';
         recipeInfo.classList.add('hidden');
         this.extractedRecipe = null;
@@ -396,7 +404,7 @@ class RecipeExtractorCard extends HTMLElement {
       addToListButton.disabled = true;
       extractAndAddButton.disabled = true;
       recipeInfo.classList.add('hidden');
-      this.showStatus('Extracting and adding to list...', 'info');
+      this.showStatus('Checking recipe format...', 'info');
 
       try {
         const serviceData = {
@@ -460,12 +468,16 @@ class RecipeExtractorCard extends HTMLElement {
     const recipeDetails = this.shadowRoot.getElementById('recipeDetails');
     const targetServingsInput = this.shadowRoot.getElementById('targetServings');
 
-    // Set recipe title
-    recipeTitle.textContent = recipeData.title || 'Recipe';
+    // Set recipe title with extraction method indicator
+    const extractionIcon = recipeData.extraction_method === 'json-ld' ? '⚡' : '🤖';
+    recipeTitle.textContent = `${extractionIcon} ${recipeData.title || 'Recipe'}`;
 
     // Build details string
     const ingredientCount = recipeData.ingredients?.length || 0;
-    let detailsText = `${ingredientCount} ingredient${ingredientCount !== 1 ? 's' : ''}`;
+    const extractionLabel = recipeData.extraction_method === 'json-ld' 
+        ? 'Parsing from JSON-LD' 
+        : 'Converting using AI';
+    let detailsText = `${ingredientCount} ingredient${ingredientCount !== 1 ? 's' : ''} • ${extractionLabel}`;
     
     if (recipeData.servings) {
       detailsText += ` • ${recipeData.servings} serving${recipeData.servings !== 1 ? 's' : ''} (original)`;
