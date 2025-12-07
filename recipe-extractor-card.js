@@ -189,8 +189,9 @@ class RecipeExtractorCard extends HTMLElement {
                 class="servings-input"
                 id="targetServings"
                 placeholder="Portions"
-                min="1"
+                min="0.1"
                 max="100"
+                step="0.1"
               />
               <button class="button" id="addToListButton" disabled>Add to List</button>
             </div>
@@ -308,7 +309,7 @@ class RecipeExtractorCard extends HTMLElement {
       }
 
       const targetServingsInput = this.shadowRoot.getElementById('targetServings');
-      const targetServings = parseInt(targetServingsInput.value);
+      const targetServings = parseFloat(targetServingsInput.value);
 
       if (targetServings && targetServings <= 0) {
         this.showStatus('Servings must be a positive number', 'error');
@@ -393,7 +394,7 @@ class RecipeExtractorCard extends HTMLElement {
       }
 
       const targetServingsInput = this.shadowRoot.getElementById('targetServings');
-      const targetServings = parseInt(targetServingsInput.value);
+      const targetServings = parseFloat(targetServingsInput.value);
 
       if (targetServings && targetServings <= 0) {
         this.showStatus('Servings must be a positive number', 'error');
