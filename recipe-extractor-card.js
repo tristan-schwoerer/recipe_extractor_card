@@ -18,6 +18,29 @@ class RecipeExtractorCard extends HTMLElement {
     if (!this.content) {
       this.render();
     }
+    
+    // Set up event listeners for extraction progress
+    if (!this._eventListenersSetup) {
+      this.setupEventListeners();
+      this._eventListenersSetup = true;
+    }
+  }
+
+  setupEventListeners() {
+    // Listen for extraction method detection events
+    this._hass.connection.subscribeEvents((event) => {
+      console.log('Extraction method detected:', event.data);
+      const extractionMethod = event.data.extraction_method === 'json-ld'
+        ? '⚡ Fast parsing (JSON-LD found)'
+        : '🤖 AI extraction (may take ~10s)';
+      this.showStatus(extractionMethod, 'info');
+    }, 'recipe_extractor_method_detected');
+
+    // Listen for extraction started events
+    this._hass.connection.subscribeEvents((event) => {
+      console.log('Extraction started:', event.data);
+      this.showStatus('Checking recipe format...', 'info');
+    }, 'recipe_extractor_extraction_started');
   }
 
   render() {
@@ -245,10 +268,10 @@ class RecipeExtractorCard extends HTMLElement {
       extractButton.disabled = true;
       extractAndAddButton.disabled = true;
       recipeInfo.classList.add('hidden');
-      this.showStatus('Checking recipe format...', 'info');
+      this.showStatus('Starting extraction...', 'info');
 
       try {
-        // Call the extract service (not extract_to_list)
+        // Call the extract service (events will update status)
         const response = await this._hass.callWS({
           type: 'call_service',
           domain: 'recipe_extractor',
@@ -271,12 +294,6 @@ class RecipeExtractorCard extends HTMLElement {
           this.showStatus('Error: ' + data.error, 'error');
           return;
         }
-
-        // Show extraction method immediately
-        const extractionMethod = data.extraction_method === 'json-ld' 
-          ? 'Parsing from JSON-LD' 
-          : 'Converting using AI';
-        this.showStatus(`${extractionMethod}...`, 'info');
 
         // Store extracted recipe
         this.extractedRecipe = data;
@@ -404,9 +421,10 @@ class RecipeExtractorCard extends HTMLElement {
       addToListButton.disabled = true;
       extractAndAddButton.disabled = true;
       recipeInfo.classList.add('hidden');
-      this.showStatus('Checking recipe format...', 'info');
+      this.showStatus('Starting extraction...', 'info');
 
       try {
+        // Call extract_to_list service (events will update status)
         const serviceData = {
           url: url,
           todo_entity: this.config.entity,
@@ -432,12 +450,6 @@ class RecipeExtractorCard extends HTMLElement {
           this.showStatus('Error: ' + data.error, 'error');
           return;
         }
-
-        // Show extraction method immediately
-        const extractionMethod = data.extraction_method === 'json-ld' 
-          ? 'Parsing from JSON-LD' 
-          : 'Converting using AI';
-        this.showStatus(`${extractionMethod}...`, 'info');
 
         const itemsAdded = data?.items_added || 0;
         if (itemsAdded > 0) {
