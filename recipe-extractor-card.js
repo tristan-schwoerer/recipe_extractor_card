@@ -272,6 +272,12 @@ class RecipeExtractorCard extends HTMLElement {
           return;
         }
 
+        // Show extraction method immediately
+        const extractionMethod = data.extraction_method === 'json-ld' 
+          ? 'Parsing from JSON-LD' 
+          : 'Converting using AI';
+        this.showStatus(`${extractionMethod}...`, 'info');
+
         // Store extracted recipe
         this.extractedRecipe = data;
         this.currentUrl = url;
@@ -282,11 +288,8 @@ class RecipeExtractorCard extends HTMLElement {
         // Enable "Add to List" button
         addToListButton.disabled = false;
         
-        // Show extraction method in status
-        const extractionMethod = data.extraction_method === 'json-ld' 
-          ? 'Parsing from JSON-LD' 
-          : 'Converting using AI';
-        this.showStatus(`${extractionMethod} • Recipe extracted! Adjust portions if needed.`, 'success');
+        // Show success status
+        this.showStatus(`Recipe extracted! Adjust portions if needed.`, 'success');
 
         // Clear success message after 3 seconds
         setTimeout(() => {
@@ -348,11 +351,7 @@ class RecipeExtractorCard extends HTMLElement {
 
         const itemsAdded = data?.items_added || 0;
         if (itemsAdded > 0) {
-          // Show extraction method in success message
-          const extractionMethod = data.extraction_method === 'json-ld' 
-            ? 'Parsing from JSON-LD' 
-            : 'Converting using AI';
-          this.showStatus(`${extractionMethod} • Added ${itemsAdded} ingredients to list!`, 'success');
+          this.showStatus(`Added ${itemsAdded} ingredients to list!`, 'success');
         } else {
           this.showStatus('No ingredients to add.', 'error');
         }
@@ -433,6 +432,12 @@ class RecipeExtractorCard extends HTMLElement {
           this.showStatus('Error: ' + data.error, 'error');
           return;
         }
+
+        // Show extraction method immediately
+        const extractionMethod = data.extraction_method === 'json-ld' 
+          ? 'Parsing from JSON-LD' 
+          : 'Converting using AI';
+        this.showStatus(`${extractionMethod}...`, 'info');
 
         const itemsAdded = data?.items_added || 0;
         if (itemsAdded > 0) {
