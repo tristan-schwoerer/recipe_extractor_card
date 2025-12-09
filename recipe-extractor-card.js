@@ -5,6 +5,14 @@ class RecipeExtractorCard extends HTMLElement {
     this.extractedRecipe = null;
   }
 
+  /**
+   * Set the card configuration
+   * @param {Object} config - Card configuration object
+   * @param {string} config.entity - Required todo entity ID
+   * @param {string} [config.title] - Optional card title
+   * @param {string} [config.button_text] - Optional button text
+   * @param {string} [config.placeholder] - Optional input placeholder
+   */
   setConfig(config) {
     if (!config.entity) {
       throw new Error('You need to define an entity (todo entity)');
@@ -26,9 +34,88 @@ class RecipeExtractorCard extends HTMLElement {
     }
   }
 
+  /**
+   * Validate URL for security (protocol and private IP checks)
+   * @param {string} url - The URL to validate
+   * @returns {{valid: boolean, error?: string}} Validation result
+   */
+  validateUrl(url) {
+    try {
+      const parsed = new URL(url);
+      
+      // Only allow http/https protocols
+      if (!['http:', 'https:'].includes(parsed.protocol)) {
+        return { valid: false, error: 'Only HTTP/HTTPS URLs are allowed' };
+      }
+      
+      // Prevent localhost/internal IPs for security
+      const hostname = parsed.hostname.toLowerCase();
+      
+      // Check for localhost
+      if (hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '::1') {
+        return { valid: false, error: 'Internal/local URLs are not allowed' };
+      }
+      
+      // Check if it's a private IP address (RFC1918 ranges)
+      if (this.isPrivateIP(hostname)) {
+        return { valid: false, error: 'Internal/local URLs are not allowed' };
+      }
+      
+      return { valid: true };
+    } catch (e) {
+      return { valid: false, error: 'Please enter a valid URL' };
+    }
+  }
+
+  /**
+   * Check if a hostname is a private IP address (RFC1918)
+   * @param {string} hostname - The hostname to check
+   * @returns {boolean} True if hostname is a private IP
+   */
+  isPrivateIP(hostname) {
+    // Try to parse as IPv4
+    const ipv4Regex = /^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/;
+    const match = hostname.match(ipv4Regex);
+    
+    if (match) {
+      const octets = match.slice(1).map(Number);
+      
+      // Validate octets are in valid range
+      if (octets.some(octet => octet > 255)) {
+        return false;
+      }
+      
+      // Check RFC1918 private ranges:
+      // 10.0.0.0 - 10.255.255.255 (10/8 prefix)
+      if (octets[0] === 10) return true;
+      
+      // 172.16.0.0 - 172.31.255.255 (172.16/12 prefix)
+      if (octets[0] === 172 && octets[1] >= 16 && octets[1] <= 31) return true;
+      
+      // 192.168.0.0 - 192.168.255.255 (192.168/16 prefix)
+      if (octets[0] === 192 && octets[1] === 168) return true;
+      
+      // 169.254.0.0 - 169.254.255.255 (link-local)
+      if (octets[0] === 169 && octets[1] === 254) return true;
+      
+      // 127.0.0.0 - 127.255.255.255 (loopback)
+      if (octets[0] === 127) return true;
+    }
+    
+    return false;
+  }
+
+  /**
+   * Set up Home Assistant event listeners for extraction progress
+   * Prevents duplicate registration and stores unsubscribe functions
+   */
   setupEventListeners() {
+    // Prevent duplicate event listener registration
+    if (this._eventListenersSetup) return;
+    this._eventListenersSetup = true;
+
     // Listen for extraction method detection events
-    this._hass.connection.subscribeEvents((event) => {
+    this._unsubscribeMethodDetected = this._hass.connection.subscribeEvents((event) => {
       console.log('Extraction method detected:', event.data);
       const extractionMethod = event.data.extraction_method === 'json-ld'
         ? '⚡ Fast parsing (JSON-LD found)'
@@ -37,10 +124,26 @@ class RecipeExtractorCard extends HTMLElement {
     }, 'recipe_extractor_method_detected');
 
     // Listen for extraction started events
-    this._hass.connection.subscribeEvents((event) => {
+    this._unsubscribeExtractionStarted = this._hass.connection.subscribeEvents((event) => {
       console.log('Extraction started:', event.data);
       this.showStatus('Checking recipe format...', 'info');
     }, 'recipe_extractor_extraction_started');
+  }
+
+  /**
+   * Cleanup function called when card is removed from DOM
+   * Unsubscribes from all Home Assistant events
+   */
+  disconnectedCallback() {
+    // Clean up event listeners when card is removed
+    if (this._unsubscribeMethodDetected) {
+      this._unsubscribeMethodDetected();
+      this._unsubscribeMethodDetected = null;
+    }
+    if (this._unsubscribeExtractionStarted) {
+      this._unsubscribeExtractionStarted();
+      this._unsubscribeExtractionStarted = null;
+    }
   }
 
   render() {
@@ -202,11 +305,18 @@ class RecipeExtractorCard extends HTMLElement {
               class="url-input"
               placeholder="${placeholder}"
               id="recipeUrl"
+              aria-label="Recipe URL input"
+              aria-describedby="statusMessage"
             />
           </div>
           <div class="controls-group">
             <div class="button-row">
-              <button class="button" id="extractButton">Extract</button>
+              <button 
+                class="button" 
+                id="extractButton"
+                aria-label="Extract recipe from URL">
+                Extract
+              </button>
               <input
                 type="number"
                 class="servings-input"
@@ -215,13 +325,35 @@ class RecipeExtractorCard extends HTMLElement {
                 min="0.1"
                 max="100"
                 step="0.1"
+                aria-label="Target number of servings"
               />
-              <button class="button" id="addToListButton" disabled>Add to List</button>
+              <button 
+                class="button" 
+                id="addToListButton" 
+                disabled
+                aria-label="Add extracted ingredients to shopping list">
+                Add to List
+              </button>
             </div>
-            <button class="button accent" id="extractAndAddButton">Extract + Add</button>
+            <button 
+              class="button accent" 
+              id="extractAndAddButton"
+              aria-label="Extract recipe and add ingredients to list in one step">
+              Extract + Add
+            </button>
           </div>
-          <div id="statusMessage" class="status-message hidden"></div>
-          <div id="recipeInfo" class="recipe-info hidden">
+          <div 
+            id="statusMessage" 
+            class="status-message hidden"
+            role="status"
+            aria-live="polite"
+            aria-atomic="true">
+          </div>
+          <div 
+            id="recipeInfo" 
+            class="recipe-info hidden"
+            role="region"
+            aria-label="Extracted recipe information">
             <strong id="recipeTitle"></strong>
             <span id="recipeDetails"></span>
           </div>
@@ -257,11 +389,10 @@ class RecipeExtractorCard extends HTMLElement {
         return;
       }
 
-      // Basic URL validation
-      try {
-        new URL(url);
-      } catch (e) {
-        this.showStatus('Please enter a valid URL', 'error');
+      // Improved URL validation
+      const validation = this.validateUrl(url);
+      if (!validation.valid) {
+        this.showStatus(validation.error, 'error');
         return;
       }
 
@@ -269,6 +400,14 @@ class RecipeExtractorCard extends HTMLElement {
       extractAndAddButton.disabled = true;
       recipeInfo.classList.add('hidden');
       this.showStatus('Starting extraction...', 'info');
+
+      // Set up timeout for extraction (30 seconds)
+      const EXTRACTION_TIMEOUT = 30000;
+      const timeoutId = setTimeout(() => {
+        this.showStatus('Extraction timed out. Please try again.', 'error');
+        extractButton.disabled = false;
+        extractAndAddButton.disabled = false;
+      }, EXTRACTION_TIMEOUT);
 
       try {
         // Call the extract service (events will update status)
@@ -283,6 +422,7 @@ class RecipeExtractorCard extends HTMLElement {
           return_response: true,
         });
 
+        clearTimeout(timeoutId);
         console.log('Full recipe extraction response:', response);
 
         // The response data is nested under 'response'
@@ -313,6 +453,7 @@ class RecipeExtractorCard extends HTMLElement {
           statusMessage.classList.add('hidden');
         }, 3000);
       } catch (error) {
+        clearTimeout(timeoutId);
         console.error('Error extracting recipe:', error);
         this.showStatus('Failed to extract recipe: ' + error.message, 'error');
       } finally {
@@ -401,11 +542,10 @@ class RecipeExtractorCard extends HTMLElement {
         return;
       }
 
-      // Basic URL validation
-      try {
-        new URL(url);
-      } catch (e) {
-        this.showStatus('Please enter a valid URL', 'error');
+      // Improved URL validation
+      const validation = this.validateUrl(url);
+      if (!validation.valid) {
+        this.showStatus(validation.error, 'error');
         return;
       }
 
@@ -422,6 +562,15 @@ class RecipeExtractorCard extends HTMLElement {
       extractAndAddButton.disabled = true;
       recipeInfo.classList.add('hidden');
       this.showStatus('Starting extraction...', 'info');
+
+      // Set up timeout for extraction (30 seconds)
+      const EXTRACTION_TIMEOUT = 30000;
+      const timeoutId = setTimeout(() => {
+        this.showStatus('Extraction timed out. Please try again.', 'error');
+        extractButton.disabled = false;
+        addToListButton.disabled = true;
+        extractAndAddButton.disabled = false;
+      }, EXTRACTION_TIMEOUT);
 
       try {
         // Call extract_to_list service (events will update status)
@@ -445,6 +594,8 @@ class RecipeExtractorCard extends HTMLElement {
         });
 
         const data = response?.response || response;
+
+        clearTimeout(timeoutId);
 
         if (data && data.error) {
           this.showStatus('Error: ' + data.error, 'error');
@@ -470,6 +621,7 @@ class RecipeExtractorCard extends HTMLElement {
           statusMessage.classList.add('hidden');
         }, 5000);
       } catch (error) {
+        clearTimeout(timeoutId);
         console.error('Error in extract and add:', error);
         this.showStatus('Failed to extract and add: ' + error.message, 'error');
       } finally {
@@ -480,6 +632,14 @@ class RecipeExtractorCard extends HTMLElement {
     });
   }
 
+  /**
+   * Display extracted recipe information in the card
+   * @param {Object} recipeData - The extracted recipe data
+   * @param {string} recipeData.title - Recipe title
+   * @param {number} [recipeData.servings] - Number of servings
+   * @param {Array} [recipeData.ingredients] - List of ingredients
+   * @param {string} recipeData.extraction_method - 'json-ld' or 'ai'
+   */
   showRecipeInfo(recipeData) {
     const recipeInfo = this.shadowRoot.getElementById('recipeInfo');
     const recipeTitle = this.shadowRoot.getElementById('recipeTitle');
@@ -509,6 +669,11 @@ class RecipeExtractorCard extends HTMLElement {
     recipeInfo.classList.remove('hidden');
   }
 
+  /**
+   * Show a status message to the user
+   * @param {string} message - The message to display
+   * @param {'success'|'error'|'info'} type - The message type/severity
+   */
   showStatus(message, type) {
     const statusMessage = this.shadowRoot.getElementById('statusMessage');
     statusMessage.textContent = message;
@@ -516,6 +681,10 @@ class RecipeExtractorCard extends HTMLElement {
     statusMessage.classList.remove('hidden');
   }
 
+  /**
+   * Get the card size for Home Assistant layout
+   * @returns {number} The card size (grid rows)
+   */
   getCardSize() {
     return 3;
   }
