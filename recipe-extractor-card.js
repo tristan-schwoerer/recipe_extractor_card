@@ -1,3 +1,8 @@
+// Card configuration constants
+const EXTRACTION_TIMEOUT_MS = 30000;  // 30 seconds timeout for extraction
+const INFO_MESSAGE_DURATION_MS = 3000;  // How long info messages display
+const SUCCESS_MESSAGE_DURATION_MS = 5000;  // How long success messages display
+
 class RecipeExtractorCard extends HTMLElement {
   constructor() {
     super();
@@ -146,6 +151,9 @@ class RecipeExtractorCard extends HTMLElement {
     }
   }
 
+  /**
+   * Render the card UI with inputs, buttons, and status areas
+   */
   render() {
     if (!this.config || !this._hass) {
       return;
@@ -365,6 +373,9 @@ class RecipeExtractorCard extends HTMLElement {
     this.setupListeners();
   }
 
+  /**
+   * Set up event listeners for all buttons and inputs
+   */
   setupListeners() {
     const extractButton = this.shadowRoot.getElementById('extractButton');
     const addToListButton = this.shadowRoot.getElementById('addToListButton');
@@ -401,8 +412,7 @@ class RecipeExtractorCard extends HTMLElement {
       recipeInfo.classList.add('hidden');
       this.showStatus('Starting extraction...', 'info');
 
-      // Set up timeout for extraction (30 seconds)
-      const EXTRACTION_TIMEOUT = 30000;
+      // Set up timeout for extraction
       const timeoutId = setTimeout(() => {
         this.showStatus('Extraction timed out. Please try again.', 'error');
         extractButton.disabled = false;
@@ -448,10 +458,10 @@ class RecipeExtractorCard extends HTMLElement {
         // Show success status
         this.showStatus(`Recipe extracted! Adjust portions if needed.`, 'success');
 
-        // Clear success message after 3 seconds
+        // Clear success message after delay
         setTimeout(() => {
           statusMessage.classList.add('hidden');
-        }, 3000);
+        }, INFO_MESSAGE_DURATION_MS);
       } catch (error) {
         clearTimeout(timeoutId);
         console.error('Error extracting recipe:', error);
@@ -521,10 +531,10 @@ class RecipeExtractorCard extends HTMLElement {
         this.currentUrl = null;
         addToListButton.disabled = true;
 
-        // Clear message after 5 seconds
+        // Clear message after delay
         setTimeout(() => {
           statusMessage.classList.add('hidden');
-        }, 5000);
+        }, SUCCESS_MESSAGE_DURATION_MS);
       } catch (error) {
         console.error('Error adding to list:', error);
         this.showStatus('Failed to add to list: ' + error.message, 'error');
@@ -563,14 +573,13 @@ class RecipeExtractorCard extends HTMLElement {
       recipeInfo.classList.add('hidden');
       this.showStatus('Starting extraction...', 'info');
 
-      // Set up timeout for extraction (30 seconds)
-      const EXTRACTION_TIMEOUT = 30000;
+      // Set up timeout for extraction
       const timeoutId = setTimeout(() => {
         this.showStatus('Extraction timed out. Please try again.', 'error');
         extractButton.disabled = false;
         addToListButton.disabled = true;
         extractAndAddButton.disabled = false;
-      }, EXTRACTION_TIMEOUT);
+      }, EXTRACTION_TIMEOUT_MS);
 
       try {
         // Call extract_to_list service (events will update status)
@@ -616,10 +625,10 @@ class RecipeExtractorCard extends HTMLElement {
         this.extractedRecipe = null;
         this.currentUrl = null;
 
-        // Clear message after 5 seconds
+        // Clear message after delay
         setTimeout(() => {
           statusMessage.classList.add('hidden');
-        }, 5000);
+        }, SUCCESS_MESSAGE_DURATION_MS);
       } catch (error) {
         clearTimeout(timeoutId);
         console.error('Error in extract and add:', error);
@@ -716,44 +725,51 @@ class RecipeExtractorCardEditor extends HTMLElement {
     this._hass = hass;
   }
 
+  /**
+   * Render the card editor UI with configuration inputs
+   */
   render() {
     this.innerHTML = `
       <div style="padding: 16px;">
         <div style="margin-bottom: 16px;">
-          <label style="display: block; margin-bottom: 4px;">Entity (Todo List)*</label>
+          <label style="display: block; margin-bottom: 4px;" for="entity">Entity (Todo List)*</label>
           <input
             type="text"
             id="entity"
             value="${this._config.entity || ''}"
             placeholder="todo.shopping_list"
             style="width: 100%; padding: 8px; box-sizing: border-box;"
+            aria-label="Todo list entity ID"
           />
         </div>
         <div style="margin-bottom: 16px;">
-          <label style="display: block; margin-bottom: 4px;">Title</label>
+          <label style="display: block; margin-bottom: 4px;" for="title">Title</label>
           <input
             type="text"
             id="title"
             value="${this._config.title || 'Recipe Extractor'}"
             style="width: 100%; padding: 8px; box-sizing: border-box;"
+            aria-label="Card title"
           />
         </div>
         <div style="margin-bottom: 16px;">
-          <label style="display: block; margin-bottom: 4px;">Button Text</label>
+          <label style="display: block; margin-bottom: 4px;" for="button_text">Button Text</label>
           <input
             type="text"
             id="button_text"
             value="${this._config.button_text || 'Extract to List'}"
             style="width: 100%; padding: 8px; box-sizing: border-box;"
+            aria-label="Button text"
           />
         </div>
         <div style="margin-bottom: 16px;">
-          <label style="display: block; margin-bottom: 4px;">Placeholder Text</label>
+          <label style="display: block; margin-bottom: 4px;" for="placeholder">Placeholder Text</label>
           <input
             type="text"
             id="placeholder"
             value="${this._config.placeholder || 'Enter recipe URL...'}"
             style="width: 100%; padding: 8px; box-sizing: border-box;"
+            aria-label="Input placeholder text"
           />
         </div>
       </div>
@@ -763,6 +779,9 @@ class RecipeExtractorCardEditor extends HTMLElement {
     this.setupEditorListeners();
   }
 
+  /**
+   * Set up event listeners for editor inputs to emit config changes
+   */
   setupEditorListeners() {
     const entity = this.querySelector('#entity');
     const title = this.querySelector('#title');
