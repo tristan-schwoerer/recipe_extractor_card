@@ -236,6 +236,11 @@ class RecipeExtractorCard extends HTMLElement {
           box-sizing: border-box;
           text-align: center;
         }
+        .servings-input:disabled {
+          opacity: 0.5;
+          cursor: not-allowed;
+          background-color: var(--disabled-color, var(--secondary-background-color));
+        }
         .button {
           padding: 12px 16px;
           font-size: 14px;
@@ -371,6 +376,14 @@ class RecipeExtractorCard extends HTMLElement {
     `;
 
     this.content = true;
+    
+    // Ensure portions field starts empty and disabled
+    const targetServingsInput = this.shadowRoot.getElementById('targetServings');
+    if (targetServingsInput) {
+      targetServingsInput.value = '';
+      targetServingsInput.disabled = true;
+    }
+    
     this.setupListeners();
   }
 
@@ -626,6 +639,7 @@ class RecipeExtractorCard extends HTMLElement {
         // Clear form
         input.value = '';
         targetServingsInput.value = '';
+        targetServingsInput.disabled = true;
         recipeInfo.classList.add('hidden');
         this.extractedRecipe = null;
         this.currentUrl = null;
