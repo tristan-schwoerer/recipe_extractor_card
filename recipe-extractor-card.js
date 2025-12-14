@@ -333,6 +333,7 @@ class RecipeExtractorCard extends HTMLElement {
                 min="0.1"
                 max="100"
                 step="0.1"
+                disabled
                 aria-label="Target number of servings"
               />
               <button 
@@ -452,8 +453,10 @@ class RecipeExtractorCard extends HTMLElement {
         // Show recipe info
         this.showRecipeInfo(data);
         
-        // Enable "Add to List" button
+        // Enable "Add to List" button and portions field
         addToListButton.disabled = false;
+        const targetServingsInput = this.shadowRoot.getElementById('targetServings');
+        targetServingsInput.disabled = false;
         
         // Show success status
         this.showStatus(`Recipe extracted! Adjust portions if needed.`, 'success');
@@ -526,6 +529,8 @@ class RecipeExtractorCard extends HTMLElement {
 
         // Clear input and success message after 5 seconds
         input.value = '';
+        targetServingsInput.value = '';
+        targetServingsInput.disabled = true;
         recipeInfo.classList.add('hidden');
         this.extractedRecipe = null;
         this.currentUrl = null;
@@ -669,9 +674,7 @@ class RecipeExtractorCard extends HTMLElement {
     if (recipeData.servings) {
       detailsText += ` • ${recipeData.servings} serving${recipeData.servings !== 1 ? 's' : ''} (original)`;
       // Pre-fill the servings input with the original value
-      if (!targetServingsInput.value) {
-        targetServingsInput.value = recipeData.servings;
-      }
+      targetServingsInput.value = recipeData.servings;
     }
 
     recipeDetails.textContent = detailsText;
