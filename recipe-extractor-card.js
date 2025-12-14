@@ -380,40 +380,8 @@ class RecipeExtractorCard extends HTMLElement {
 
     this.content = true;
     
-    // Ensure portions field starts empty and disabled
-    const targetServingsInput = this.shadowRoot.getElementById('targetServings');
-    if (targetServingsInput) {
-      targetServingsInput.value = '';
-      targetServingsInput.disabled = true;
-      this.portionsEnabled = false;
-      
-      // Add event listeners to prevent any input when disabled
-      targetServingsInput.addEventListener('keydown', (e) => {
-        if (!this.portionsEnabled) {
-          e.preventDefault();
-          e.stopPropagation();
-          return false;
-        }
-      });
-      
-      targetServingsInput.addEventListener('input', (e) => {
-        if (!this.portionsEnabled) {
-          e.target.value = '';
-          e.preventDefault();
-          e.stopPropagation();
-          return false;
-        }
-      });
-      
-      targetServingsInput.addEventListener('change', (e) => {
-        if (!this.portionsEnabled) {
-          e.target.value = '';
-          e.preventDefault();
-          e.stopPropagation();
-          return false;
-        }
-      });
-    }
+    // Reset portions state
+    this.portionsEnabled = false;
     
     this.setupListeners();
   }
