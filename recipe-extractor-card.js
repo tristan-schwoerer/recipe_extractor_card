@@ -23,19 +23,23 @@ class RecipeExtractorCard extends HTMLElement {
       throw new Error('You need to define an entity (todo entity)');
     }
     this.config = config;
-    this.render();
+    // Only render if hass is already set
+    if (this._hass) {
+      this.render();
+    }
   }
 
   set hass(hass) {
     this._hass = hass;
-    if (!this.content) {
+    
+    // Only render once when both config and hass are available
+    if (this.config && !this.content) {
       this.render();
     }
     
-    // Set up event listeners for extraction progress
-    if (!this._eventListenersSetup) {
+    // Set up event listeners for extraction progress (only once)
+    if (this._hass && !this._eventListenersSetup) {
       this.setupEventListeners();
-      this._eventListenersSetup = true;
     }
   }
 
@@ -117,6 +121,12 @@ class RecipeExtractorCard extends HTMLElement {
   setupEventListeners() {
     // Prevent duplicate event listener registration
     if (this._eventListenersSetup) return;
+    
+    if (!this._hass || !this._hass.connection) {
+      console.warn('Cannot setup event listeners: hass connection not available');
+      return;
+    }
+    
     this._eventListenersSetup = true;
 
     // Listen for extraction method detection events
@@ -378,6 +388,7 @@ class RecipeExtractorCard extends HTMLElement {
     `;
 
     this.content = true;
+    console.log('Recipe Extractor Card: Rendered');
     this.setupListeners();
   }
 
