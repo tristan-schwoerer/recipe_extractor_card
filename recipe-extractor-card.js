@@ -388,7 +388,6 @@ class RecipeExtractorCard extends HTMLElement {
     `;
 
     this.content = true;
-    console.log('Recipe Extractor Card: Rendered');
     this.setupListeners();
   }
 
@@ -403,10 +402,6 @@ class RecipeExtractorCard extends HTMLElement {
     const statusMessage = this.shadowRoot.getElementById('statusMessage');
     const recipeInfo = this.shadowRoot.getElementById('recipeInfo');
     const targetServingsInput = this.shadowRoot.getElementById('targetServings');
-    
-    console.log('Recipe Extractor Card: Setting up listeners');
-    console.log('Initial targetServings disabled state:', targetServingsInput.disabled);
-    console.log('Initial targetServings value:', targetServingsInput.value);
 
     // Handle Enter key in input
     input.addEventListener('keypress', (e) => {
@@ -436,11 +431,8 @@ class RecipeExtractorCard extends HTMLElement {
       recipeInfo.classList.add('hidden');
       
       // Disable and clear the servings input during extraction
-      const targetServingsInput = this.shadowRoot.getElementById('targetServings');
-      console.log('Before extraction - disabled:', targetServingsInput.disabled, 'value:', targetServingsInput.value);
       targetServingsInput.disabled = true;
       targetServingsInput.value = '';
-      console.log('After clearing - disabled:', targetServingsInput.disabled, 'value:', targetServingsInput.value);
       
       this.showStatus('Starting extraction...', 'info');
 
@@ -486,10 +478,7 @@ class RecipeExtractorCard extends HTMLElement {
         
         // Enable "Add to List" button and portions field
         addToListButton.disabled = false;
-        const targetServingsInput = this.shadowRoot.getElementById('targetServings');
-        console.log('After extraction - before enabling - disabled:', targetServingsInput.disabled, 'value:', targetServingsInput.value);
         targetServingsInput.disabled = false;
-        console.log('After extraction - after enabling - disabled:', targetServingsInput.disabled, 'value:', targetServingsInput.value);
         
         // Show success status
         this.showStatus(`Recipe extracted! Adjust portions if needed.`, 'success');
@@ -716,10 +705,7 @@ class RecipeExtractorCard extends HTMLElement {
     
     // Always set the servings input value when showing recipe info
     // This ensures it overwrites any previously entered value
-    console.log('showRecipeInfo - setting value to:', recipeData.servings);
-    console.log('showRecipeInfo - before set - value:', targetServingsInput.value, 'disabled:', targetServingsInput.disabled);
     targetServingsInput.value = recipeData.servings || '';
-    console.log('showRecipeInfo - after set - value:', targetServingsInput.value, 'disabled:', targetServingsInput.disabled);
 
     recipeDetails.textContent = detailsText;
     recipeInfo.classList.remove('hidden');
