@@ -141,14 +141,15 @@ class RecipeExtractorCard extends HTMLElement {
    */
   disconnectedCallback() {
     // Clean up event listeners when card is removed
-    if (this._unsubscribeMethodDetected) {
+    if (this._unsubscribeMethodDetected && typeof this._unsubscribeMethodDetected === 'function') {
       this._unsubscribeMethodDetected();
       this._unsubscribeMethodDetected = null;
     }
-    if (this._unsubscribeExtractionStarted) {
+    if (this._unsubscribeExtractionStarted && typeof this._unsubscribeExtractionStarted === 'function') {
       this._unsubscribeExtractionStarted();
       this._unsubscribeExtractionStarted = null;
     }
+    this._eventListenersSetup = false;
   }
 
   /**
