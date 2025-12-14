@@ -431,7 +431,7 @@ class RecipeExtractorCard extends HTMLElement {
         this.showStatus('Extraction timed out. Please try again.', 'error');
         extractButton.disabled = false;
         extractAndAddButton.disabled = false;
-      }, EXTRACTION_TIMEOUT);
+      }, EXTRACTION_TIMEOUT_MS);
 
       try {
         // Call the extract service (events will update status)
