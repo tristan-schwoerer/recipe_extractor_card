@@ -8,6 +8,7 @@ class RecipeExtractorCard extends HTMLElement {
     super();
     this.attachShadow({ mode: 'open' });
     this.extractedRecipe = null;
+    this.portionsEnabled = false;
   }
 
   /**
@@ -340,6 +341,7 @@ class RecipeExtractorCard extends HTMLElement {
                 max="100"
                 step="0.1"
                 disabled
+                readonly
                 aria-label="Target number of servings"
               />
               <button 
@@ -383,6 +385,34 @@ class RecipeExtractorCard extends HTMLElement {
     if (targetServingsInput) {
       targetServingsInput.value = '';
       targetServingsInput.disabled = true;
+      this.portionsEnabled = false;
+      
+      // Add event listeners to prevent any input when disabled
+      targetServingsInput.addEventListener('keydown', (e) => {
+        if (!this.portionsEnabled) {
+          e.preventDefault();
+          e.stopPropagation();
+          return false;
+        }
+      });
+      
+      targetServingsInput.addEventListener('input', (e) => {
+        if (!this.portionsEnabled) {
+          e.target.value = '';
+          e.preventDefault();
+          e.stopPropagation();
+          return false;
+        }
+      });
+      
+      targetServingsInput.addEventListener('change', (e) => {
+        if (!this.portionsEnabled) {
+          e.target.value = '';
+          e.preventDefault();
+          e.stopPropagation();
+          return false;
+        }
+      });
     }
     
     this.setupListeners();
@@ -470,7 +500,9 @@ class RecipeExtractorCard extends HTMLElement {
         // Enable "Add to List" button and portions field
         addToListButton.disabled = false;
         const targetServingsInput = this.shadowRoot.getElementById('targetServings');
+        this.portionsEnabled = true;
         targetServingsInput.disabled = false;
+        targetServingsInput.removeAttribute('readonly');
         
         // Show success status
         this.showStatus(`Recipe extracted! Adjust portions if needed.`, 'success');
@@ -544,7 +576,9 @@ class RecipeExtractorCard extends HTMLElement {
         // Clear input and success message after 5 seconds
         input.value = '';
         targetServingsInput.value = '';
+        this.portionsEnabled = false;
         targetServingsInput.disabled = true;
+        targetServingsInput.setAttribute('readonly', 'readonly');
         recipeInfo.classList.add('hidden');
         this.extractedRecipe = null;
         this.currentUrl = null;
@@ -640,7 +674,9 @@ class RecipeExtractorCard extends HTMLElement {
         // Clear form
         input.value = '';
         targetServingsInput.value = '';
+        this.portionsEnabled = false;
         targetServingsInput.disabled = true;
+        targetServingsInput.setAttribute('readonly', 'readonly');
         recipeInfo.classList.add('hidden');
         this.extractedRecipe = null;
         this.currentUrl = null;
