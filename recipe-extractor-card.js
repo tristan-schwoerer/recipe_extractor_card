@@ -565,8 +565,10 @@ class RecipeExtractorCard extends HTMLElement {
       } catch (error) {
         console.error('Error adding to list:', error);
         this.showStatus('Failed to add to list: ' + error.message, 'error');
-      } finally {
-        addToListButton.disabled = false;
+        // Only re-enable if we still have an extracted recipe
+        if (this.extractedRecipe) {
+          addToListButton.disabled = false;
+        }
       }
     });
 
