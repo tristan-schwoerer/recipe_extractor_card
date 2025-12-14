@@ -240,6 +240,7 @@ class RecipeExtractorCard extends HTMLElement {
           opacity: 0.5;
           cursor: not-allowed;
           background-color: var(--disabled-color, var(--secondary-background-color));
+          pointer-events: none;
         }
         .button {
           padding: 12px 16px;
