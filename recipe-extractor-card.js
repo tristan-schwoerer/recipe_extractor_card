@@ -8,7 +8,6 @@ class RecipeExtractorCard extends HTMLElement {
     super();
     this.attachShadow({ mode: 'open' });
     this.extractedRecipe = null;
-    this.portionsEnabled = false;
   }
 
   /**
@@ -341,7 +340,6 @@ class RecipeExtractorCard extends HTMLElement {
                 max="100"
                 step="0.1"
                 disabled
-                readonly
                 aria-label="Target number of servings"
               />
               <button 
@@ -379,10 +377,6 @@ class RecipeExtractorCard extends HTMLElement {
     `;
 
     this.content = true;
-    
-    // Reset portions state
-    this.portionsEnabled = false;
-    
     this.setupListeners();
   }
 
@@ -423,6 +417,12 @@ class RecipeExtractorCard extends HTMLElement {
       extractButton.disabled = true;
       extractAndAddButton.disabled = true;
       recipeInfo.classList.add('hidden');
+      
+      // Disable and clear the servings input during extraction
+      const targetServingsInput = this.shadowRoot.getElementById('targetServings');
+      targetServingsInput.disabled = true;
+      targetServingsInput.value = '';
+      
       this.showStatus('Starting extraction...', 'info');
 
       // Set up timeout for extraction
@@ -462,15 +462,13 @@ class RecipeExtractorCard extends HTMLElement {
         this.extractedRecipe = data;
         this.currentUrl = url;
 
-        // Show recipe info
+        // Show recipe info and enable servings input
         this.showRecipeInfo(data);
         
         // Enable "Add to List" button and portions field
         addToListButton.disabled = false;
         const targetServingsInput = this.shadowRoot.getElementById('targetServings');
-        this.portionsEnabled = true;
         targetServingsInput.disabled = false;
-        targetServingsInput.removeAttribute('readonly');
         
         // Show success status
         this.showStatus(`Recipe extracted! Adjust portions if needed.`, 'success');
@@ -541,12 +539,10 @@ class RecipeExtractorCard extends HTMLElement {
           this.showStatus('No ingredients to add.', 'error');
         }
 
-        // Clear input and success message after 5 seconds
+        // Clear input and reset state
         input.value = '';
         targetServingsInput.value = '';
-        this.portionsEnabled = false;
         targetServingsInput.disabled = true;
-        targetServingsInput.setAttribute('readonly', 'readonly');
         recipeInfo.classList.add('hidden');
         this.extractedRecipe = null;
         this.currentUrl = null;
@@ -592,6 +588,11 @@ class RecipeExtractorCard extends HTMLElement {
       addToListButton.disabled = true;
       extractAndAddButton.disabled = true;
       recipeInfo.classList.add('hidden');
+      
+      // Disable and clear the servings input during extraction
+      targetServingsInput.disabled = true;
+      targetServingsInput.value = '';
+      
       this.showStatus('Starting extraction...', 'info');
 
       // Set up timeout for extraction
@@ -639,12 +640,10 @@ class RecipeExtractorCard extends HTMLElement {
           this.showStatus('No ingredients to add.', 'error');
         }
 
-        // Clear form
+        // Clear form and reset state
         input.value = '';
         targetServingsInput.value = '';
-        this.portionsEnabled = false;
         targetServingsInput.disabled = true;
-        targetServingsInput.setAttribute('readonly', 'readonly');
         recipeInfo.classList.add('hidden');
         this.extractedRecipe = null;
         this.currentUrl = null;
@@ -692,9 +691,11 @@ class RecipeExtractorCard extends HTMLElement {
     
     if (recipeData.servings) {
       detailsText += ` • ${recipeData.servings} serving${recipeData.servings !== 1 ? 's' : ''} (original)`;
-      // Pre-fill the servings input with the original value
-      targetServingsInput.value = recipeData.servings;
     }
+    
+    // Always set the servings input value when showing recipe info
+    // This ensures it overwrites any previously entered value
+    targetServingsInput.value = recipeData.servings || '';
 
     recipeDetails.textContent = detailsText;
     recipeInfo.classList.remove('hidden');
